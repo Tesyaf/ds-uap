@@ -1,0 +1,7 @@
+[core]
+    remote = origin
+['remote "origin"']
+    url = https://dagshub.com/Tesyaf/uap_ds.dvc
+    auth = basic
+    user = Tesyaf
+    password = d13905d6380b895b4f976033d297ad7925688b16
