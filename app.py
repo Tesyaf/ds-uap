@@ -147,10 +147,6 @@ def analysis():
     return render_template("analysis.html", active="analysis")
 
 
-@app.route("/about")
-def about():
-    """Tentang proyek dan dataset."""
-    return render_template("about.html", active="about")
 
 
 # ── API Endpoints (dipanggil oleh JS untuk chart dinamis) ──────────────────────

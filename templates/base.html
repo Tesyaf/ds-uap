@@ -20,7 +20,6 @@
     <nav class="nav-links">
       <a href="{{ url_for('index') }}" class="nav-link {% if active == 'home' or active == 'predict' %}active{% endif %}">Predictor</a>
       <a href="{{ url_for('dashboard') }}" class="nav-link {% if active == 'dashboard' or active == 'analysis' %}active{% endif %}">Analytics Dashboard</a>
-      <a href="{{ url_for('about') }}" class="nav-link {% if active == 'about' %}active{% endif %}">API Docs</a>
     </nav>
   </header>
 
