@@ -118,7 +118,14 @@ def predict():
                     "probabilities": {c: round(float(p) * 100, 1) for c, p in zip(classes, proba)},
                     "features": dict(data),
                 }
-                # Jika request adalah AJAX / minta JSON, return JSON
+
+                # Log prediction to MLflow for monitoring
+                try:
+                    from utils.monitoring import log_prediction_async
+                    log_prediction_async(data, result)
+                except Exception as e:
+                    app.logger.error(f"Failed to log prediction: {e}")
+
                 if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.headers.get("Accept") == "application/json":
                     return jsonify({"success": True, "result": result})
             else:

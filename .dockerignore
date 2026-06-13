@@ -1,0 +1,14 @@
+.git
+.gitignore
+.dockerignore
+.dvc/cache
+.dvc/tmp
+.dvc/config.local
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.ipynb_checkpoints/
+*.xlsx.tmp

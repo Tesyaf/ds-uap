@@ -1,0 +1,25 @@
+# Python virtual environment and caches
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# DVC local configs
+.dvc/config.local
+.dvc/tmp/
+.dvc/cache/
+
+# Large model and data files (tracked by DVC)
+models/model_final.pkl
+data/nj_transit_performance_dashboard.xlsx
+
