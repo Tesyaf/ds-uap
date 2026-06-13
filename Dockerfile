@@ -15,6 +15,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy all project files into container
 COPY . .
 
+# Declare build arguments (Railway passes variables during build as ARGs)
+ARG DAGSHUB_REPO
+ARG DAGSHUB_TOKEN
+ARG MLFLOW_TRACKING_PASSWORD
+
+# Set as environment variables for download script
+ENV DAGSHUB_REPO=$DAGSHUB_REPO
+ENV DAGSHUB_TOKEN=$DAGSHUB_TOKEN
+ENV MLFLOW_TRACKING_PASSWORD=$MLFLOW_TRACKING_PASSWORD
+
+# Download DVC-tracked assets from DagsHub at build time
+RUN python utils/download_assets.py
+
 # Set dynamic port binding matching Railway
 ENV PORT=5000
 ENV FLASK_APP=app.py
