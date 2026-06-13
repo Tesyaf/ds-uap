@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}EDA Analysis — RailAnalytics{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1 class="page-title">Exploratory Data Analysis</h1>
+    <p class="page-subtitle">Penjelajahan data statistik mendalam untuk memahami pola keterlambatan kereta</p>
+  </div>
+
+  <div class="analysis-intro">
+    Dataset berisi <strong>256.508 data perjalanan</strong> dari Maret 2018 dengan 13 kolom awal.
+    Tiga kolom memiliki missing values (~5.26%): <code>stop_sequence</code>, <code>scheduled_time</code>, dan <code>delay_minutes</code>.
+  </div>
+
+  <!-- Distribusi -->
+  <section class="chart-row">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Distribusi Keterlambatan (delay_minutes)</div>
+          <div class="chart-subtitle">Right-skewed — mayoritas delay berada di bawah 10 menit</div>
+        </div>
+      </div>
+      <canvas id="delayHistChart" height="220"></canvas>
+    </div>
+    
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Distribusi Urutan Pemberhentian (stop_sequence)</div>
+          <div class="chart-subtitle">Mayoritas perjalanan memiliki 3 hingga 10 pemberhentian</div>
+        </div>
+      </div>
+      <canvas id="stopHistChart" height="220"></canvas>
+    </div>
+  </section>
+
+  <!-- Correlation Heatmap sebagai tabel visual -->
+  <section class="chart-row">
+    <div class="chart-card chart-card--full">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Korelasi Antar Fitur Numerik</div>
+          <div class="chart-subtitle">Nilai korelasi yang rendah menunjukkan fitur-fitur bersifat independen</div>
+        </div>
+      </div>
+      <div class="corr-table-wrap" id="corrTable"></div>
+    </div>
+  </section>
+
+  <!-- Feature Stats -->
+  <section class="chart-row">
+    <div class="chart-card chart-card--full">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Statistik Deskriptif Dataset</div>
+          <div class="chart-subtitle">Ringkasan statistik numerik utama hasil pra-pemrosesan data</div>
+        </div>
+      </div>
+      <div class="corr-table-wrap">
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th>Metrik Deskriptif</th>
+              <th>stop_sequence</th>
+              <th>delay_minutes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Jumlah (Count)</td>
+              <td class="number">243.028</td>
+              <td class="number">243.028</td>
+            </tr>
+            <tr>
+              <td>Rata-rata (Mean)</td>
+              <td class="number">7.98</td>
+              <td class="number">3.55</td>
+            </tr>
+            <tr>
+              <td>Deviasi Standar (Std)</td>
+              <td class="number">5.07</td>
+              <td class="number">6.68</td>
+            </tr>
+            <tr>
+              <td>Minimal (Min)</td>
+              <td class="number">1.0</td>
+              <td class="number">0.0</td>
+            </tr>
+            <tr>
+              <td>Kuartil 1 (25%)</td>
+              <td class="number">4.0</td>
+              <td class="number">0.23</td>
+            </tr>
+            <tr>
+              <td>Median (50%)</td>
+              <td class="number">7.0</td>
+              <td class="number">2.10</td>
+            </tr>
+            <tr>
+              <td>Kuartil 3 (75%)</td>
+              <td class="number">11.0</td>
+              <td class="number">4.12</td>
+            </tr>
+            <tr>
+              <td>Maksimal (Max)</td>
+              <td class="number">26.0</td>
+              <td class="number">111.18</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Insights -->
+  <div class="page-header" style="margin-top: 40px; margin-bottom: 20px;">
+    <h2 class="page-title" style="font-size: 20px;">Wawasan Utama (Key Insights)</h2>
+  </div>
+  
+  <section class="insights-grid">
+    <div class="insight-card">
+      <div class="insight-title">Jam 2–5 Pagi Paling Rawan</div>
+      <div class="insight-body">Keterlambatan rata-rata mencapai 17+ menit pada jam dini hari. Kemungkinan besar terkait transisi operasional dan pemeliharaan jalur harian.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-title">Kamis Paling Terlambat</div>
+      <div class="insight-body">Berdasarkan analisis tren mingguan, hari Kamis memiliki rata-rata menit keterlambatan (delay) tertinggi dibandingkan hari lainnya.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-title">Keterlambatan Kumulatif</div>
+      <div class="insight-body">Korelasi stop sequence dengan delay tergolong lemah (r=0.079), namun efek penumpukan delay terlihat signifikan pada jalur padat tertentu.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-title">Class Imbalance Ekstrem</div>
+      <div class="insight-body">Proporsi kelas data: 89.7% tepat waktu (departed), 8.3% terlambat (estimated), 2.0% dibatalkan. Diperlukan SMOTE untuk melatih model secara seimbang.</div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/charts_analysis.js') }}"></script>
+{% endblock %}

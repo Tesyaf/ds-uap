@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Prediksi Status — RailAnalytics{% endblock %}
+{% block page_title %}Prediksi Status Kereta{% endblock %}
+
+{% block content %}
+
+<div class="predict-layout">
+
+  <!-- Form Panel -->
+  <div class="predict-form-panel">
+    <div class="panel-header">
+      <div class="panel-title">Input Data Perjalanan</div>
+      <div class="panel-sub">Isi parameter di bawah untuk memprediksi status kereta</div>
+    </div>
+
+    <form method="POST" action="{{ url_for('predict') }}" class="predict-form">
+
+      <div class="form-group">
+        <label class="form-label">Jalur Kereta (Line)</label>
+        <select name="line" class="form-select">
+          {% for line in lines %}
+          <option value="{{ line }}" {% if request.form.get('line') == line %}selected{% endif %}>{{ line }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tipe Layanan</label>
+        <select name="type" class="form-select">
+          {% for t in type_names %}
+          <option value="{{ t }}" {% if request.form.get('type') == t %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Urutan Stop</label>
+          <input type="number" name="stop_sequence" class="form-input"
+                 value="{{ request.form.get('stop_sequence', 5) }}" min="1" max="26" />
+          <span class="form-hint">1 = stasiun pertama</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Akhir Pekan?</label>
+          <select name="is_weekend" class="form-select">
+            <option value="0" {% if request.form.get('is_weekend', '0') == '0' %}selected{% endif %}>Tidak (Weekday)</option>
+            <option value="1" {% if request.form.get('is_weekend') == '1' %}selected{% endif %}>Ya (Weekend)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Stasiun Asal</label>
+        <select name="from_id" class="form-select" id="from-station">
+          {% for sid, sname in stations %}
+          <option value="{{ sid }}" {% if request.form.get('from_id', '105')|string == sid|string %}selected{% endif %}>{{ sname }} ({{ sid }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Stasiun Tujuan</label>
+        <select name="to_id" class="form-select" id="to-station">
+          {% for sid, sname in stations %}
+          <option value="{{ sid }}" {% if request.form.get('to_id', '38187')|string == sid|string %}selected{% endif %}>{{ sname }} ({{ sid }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn-predict">
+        🤖 Prediksi Sekarang
+      </button>
+    </form>
+  </div>
+
+  <!-- Result Panel -->
+  <div class="predict-result-panel">
+    {% if error %}
+    <div class="result-error">
+      <div class="result-error-icon">⚠️</div>
+      <div class="result-error-msg">{{ error }}</div>
+    </div>
+
+    {% elif result %}
+    <div class="result-card result-card--{{ result.label }}">
+      <div class="result-badge">Prediksi Hasil</div>
+      <div class="result-status">{{ result.label | upper }}</div>
+      <div class="result-confidence">Confidence: {{ result.confidence }}%</div>
+
+      <div class="result-proba-title">Probabilitas per Kelas</div>
+      <div class="proba-bars">
+        {% for cls, pct in result.probabilities.items() %}
+        <div class="proba-row">
+          <div class="proba-label">{{ cls }}</div>
+          <div class="proba-bar-wrap">
+            <div class="proba-bar proba-bar--{{ cls }}" style="width: {{ pct }}%"></div>
+          </div>
+          <div class="proba-pct">{{ pct }}%</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="result-interpret">
+        {% if result.label == 'departed' %}
+        ✅ Kereta kemungkinan besar akan berangkat tepat waktu.
+        {% elif result.label == 'estimated' %}
+        🕐 Kereta berpotensi mengalami keterlambatan.
+        {% else %}
+        ❌ Kereta berpotensi dibatalkan. Periksa informasi terkini.
+        {% endif %}
+      </div>
+    </div>
+
+    {% else %}
+    <div class="result-placeholder">
+      <div class="placeholder-icon">🚆</div>
+      <div class="placeholder-text">Isi form di sebelah kiri<br/>untuk memulai prediksi</div>
+    </div>
+    {% endif %}
+
+    <!-- Info Box -->
+    <div class="info-box">
+      <div class="info-title">ℹ️ Tentang Model</div>
+      <div class="info-body">
+        Model menggunakan <strong>Random Forest Classifier</strong> dengan pipeline SMOTE + undersampling untuk menangani class imbalance. ROC AUC: <strong>0.915</strong>, F1-macro: <strong>0.61</strong>.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

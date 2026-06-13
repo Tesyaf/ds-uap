@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Overview — RailAnalytics{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero" id="predictor">
+  <div class="page-wrapper" style="width: 100%; max-width: var(--max-w); padding: 0;">
+    <div class="hero-content">
+      <h1 class="hero-title">Predicting Efficiency, Enhancing Commutes.</h1>
+      <p class="hero-subtitle">Sistem informasi analitik pintar berbasis Random Forest untuk memprediksi status ketepatan waktu kereta NJ Transit secara real-time.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Floating Interactive Prediction Widget -->
+<div class="prediction-widget-container">
+  <div class="glass-card">
+    <div class="widget-header">
+      <button class="widget-tab active" data-tab="tab-predict">
+        Prediksi Delay
+      </button>
+      <button class="widget-tab" data-tab="tab-line-analytics">
+        Performa Jalur
+      </button>
+      <button class="widget-tab" data-tab="tab-api-status">
+        Status API
+      </button>
+    </div>
+    
+    <div class="widget-body">
+      <!-- Tab 1: Predict Delay -->
+      <div class="tab-pane active" id="tab-predict">
+        <form class="predict-inline-form">
+          <div class="form-inputs-grid">
+            <div class="widget-form-group span-2">
+              <label class="widget-form-label">Stasiun Asal</label>
+              <select name="from_id" class="widget-form-select">
+                {% for sid, sname in stations %}
+                <option value="{{ sid }}" {% if sid|string == '105' %}selected{% endif %}>{{ sname }} ({{ sid }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <div class="widget-form-group span-2">
+              <label class="widget-form-label">Stasiun Tujuan</label>
+              <select name="to_id" class="widget-form-select">
+                {% for sid, sname in stations %}
+                <option value="{{ sid }}" {% if sid|string == '38187' %}selected{% endif %}>{{ sname }} ({{ sid }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <div class="widget-form-group span-2">
+              <label class="widget-form-label">Jalur Kereta</label>
+              <select name="line" class="widget-form-select">
+                {% for line in lines %}
+                <option value="{{ line }}">{{ line }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <div class="widget-form-group span-2">
+              <label class="widget-form-label">Tipe Layanan</label>
+              <select name="type" class="widget-form-select">
+                {% for t in type_names %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="widget-form-group span-2">
+              <label class="widget-form-label">Jam Keberangkatan</label>
+              <input type="time" name="departure_time" class="widget-form-input" id="departure-time" />
+            </div>
+
+            <div class="widget-form-group">
+              <label class="widget-form-label">Urutan Stop</label>
+              <input type="number" name="stop_sequence" class="widget-form-input" value="5" min="1" max="26" />
+            </div>
+
+            <div class="widget-form-group">
+              <label class="widget-form-label">Akhir Pekan?</label>
+              <select name="is_weekend" class="widget-form-select">
+                <option value="0">Tidak (Weekday)</option>
+                <option value="1">Ya (Weekend)</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="widget-form-row-footer">
+            <button type="submit" class="btn-predict">
+              <span class="spinner"></span>
+              <span class="btn-text">Prediksi Sekarang</span>
+            </button>
+          </div>
+        </form>
+        
+        <!-- Prediction results container -->
+        <div id="widget-result-container" class="widget-result-wrapper"></div>
+      </div>
+      
+      <!-- Tab 2: Line Analytics -->
+      <div class="tab-pane" id="tab-line-analytics">
+        <div id="line-analytics-list" class="line-analytics-compact">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      
+      <!-- Tab 3: API Status -->
+      <div class="tab-pane" id="tab-api-status">
+        <div id="api-status-list" class="api-status-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard Section -->
+<section class="page-wrapper" id="dashboard" style="margin-top: 20px;">
+  <div class="page-header">
+    <h2 class="page-title">Executive Analytics Dashboard</h2>
+    <p class="page-subtitle">Ikhtisar performa transit waktu nyata dari dataset NJ Transit & Amtrak</p>
+  </div>
+
+  <!-- KPI Cards -->
+  <section class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Perjalanan</div>
+      <div class="kpi-value">{{ kpi.total_trips }}</div>
+      <div class="kpi-desc">Maret 2018</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">On-Time Rate</div>
+      <div class="kpi-value">{{ kpi.on_time_rate }}</div>
+      <div class="kpi-desc">Keberangkatan tepat waktu</div>
+    </div>
+    <div class="kpi-card kpi-yellow">
+      <div class="kpi-label">Rata-rata Keterlambatan</div>
+      <div class="kpi-value">{{ kpi.avg_delay }}</div>
+      <div class="kpi-desc">Per perjalanan</div>
+    </div>
+    <div class="kpi-card kpi-red">
+      <div class="kpi-label">Cancellation Rate</div>
+      <div class="kpi-value">{{ kpi.cancellation_rate }}</div>
+      <div class="kpi-desc">Kereta dibatalkan</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Jalur</div>
+      <div class="kpi-value">{{ kpi.total_lines }}</div>
+      <div class="kpi-desc">NJ Transit + Amtrak</div>
+    </div>
+    <div class="kpi-card kpi-red">
+      <div class="kpi-label">Jalur Terburuk</div>
+      <div class="kpi-value kpi-value--sm">{{ kpi.worst_line }}</div>
+      <div class="kpi-desc">Avg. delay tertinggi</div>
+    </div>
+  </section>
+
+  <!-- Quick Charts -->
+  <section class="chart-row">
+    <div class="chart-card chart-card--wide">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Tren Keterlambatan Harian</div>
+          <div class="chart-subtitle">Rata-rata menit keterlambatan per hari</div>
+        </div>
+      </div>
+      <canvas id="delayTrendChart" height="110"></canvas>
+    </div>
+    
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Distribusi Status Kereta</div>
+          <div class="chart-subtitle">Departed · Estimated · Cancelled</div>
+        </div>
+      </div>
+      <canvas id="statusChart" height="190"></canvas>
+    </div>
+  </section>
+
+  <section class="chart-row">
+    <div class="chart-card chart-card--full">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">15 Jalur dengan Keterlambatan Rata-rata Tertinggi</div>
+          <div class="chart-subtitle">Diurutkan dari tertinggi ke terendah</div>
+        </div>
+      </div>
+      <canvas id="linePerformanceChart" height="85"></canvas>
+    </div>
+  </section>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/charts_overview.js') }}"></script>
+{% endblock %}
